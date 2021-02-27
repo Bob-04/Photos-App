@@ -2,7 +2,7 @@
 
 namespace PhotosApp.Models
 {
-    public class AgileengineAuthParams
+    internal class AgileengineAuthParams
     {
         [JsonProperty("apiKey")]
         public string ApiKey { get; set; }

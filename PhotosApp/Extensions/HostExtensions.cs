@@ -4,7 +4,7 @@ using PhotosApp.Services;
 
 namespace PhotosApp.Extensions
 {
-    public static class HostExtensions
+    internal static class HostExtensions
     {
         public static IHost FillDatabase(this IHost webHost)
         {

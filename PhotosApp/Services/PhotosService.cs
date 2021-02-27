@@ -14,7 +14,7 @@ using Photos.Data.Models;
 
 namespace PhotosApp.Services
 {
-    public class PhotosService : IPhotosService
+    internal class PhotosService : IPhotosService
     {
         private readonly ApplicationContext _dbContext;
         private readonly HttpClient _httpClient;
