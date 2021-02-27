@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Photos.Data;
-using PhotosApp.Services;
+using Photos.Data.Models;
 
 namespace PhotosApp.Controllers
 {
@@ -11,17 +15,25 @@ namespace PhotosApp.Controllers
         private readonly ApplicationContext _dbContext;
         private readonly ILogger<PhotosController> _logger;
 
-        public PhotosController(ApplicationContext dbContext, ILogger<PhotosController> logger, PhotosService s)
+        public PhotosController(ApplicationContext dbContext, ILogger<PhotosController> logger)
         {
             _dbContext = dbContext;
             _logger = logger;
         }
 
         [HttpGet("/search/{searchTerm}")]
-        public IActionResult Get(string searchTerm)
+        public async Task<IEnumerable<Image>> SearchImages(string searchTerm)
         {
+            _logger.LogInformation($"Getting images by term ${searchTerm}");
 
-            return null;
+            var images = await _dbContext.Images
+                .Where(i =>
+                    i.Camera.ToLower().Contains(searchTerm.ToLower()) ||
+                    i.Author.ToLower().Contains(searchTerm.ToLower()) ||
+                    i.Tags.ToLower().Contains(searchTerm.ToLower()))
+                .ToListAsync();
+
+            return images;
         }
     }
 }
