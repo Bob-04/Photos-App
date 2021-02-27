@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using PhotosApp.Models;
@@ -18,14 +19,16 @@ namespace PhotosApp.Services
         private readonly ApplicationContext _dbContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
         private const string ApiUrl = "http://interview.agileengine.com";
 
         public PhotosService(ApplicationContext dbContext, IHttpClientFactory clientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration, IMapper mapper)
         {
             _dbContext = dbContext;
             _httpClient = clientFactory.CreateClient();
             _configuration = configuration;
+            _mapper = mapper;
         }
 
         public async Task FillPhotosAsync()
@@ -43,15 +46,7 @@ namespace PhotosApp.Services
                 foreach (var imageId in notExistsImageIds)
                 {
                     var imageResponse = await GetImage(imageId);
-                    var image = new Image
-                    {
-                        Id = imageResponse.Id,
-                        Author = imageResponse.Author,
-                        Camera = imageResponse.Camera,
-                        FullPicture = imageResponse.FullPicture,
-                        CroppedPicture = imageResponse.CroppedPicture,
-                        Tags = imageResponse.Tags
-                    };
+                    var image = _mapper.Map<Image>(imageResponse);
                     _dbContext.Images.Add(image);
                 }
 

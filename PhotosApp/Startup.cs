@@ -26,6 +26,8 @@ namespace PhotosApp
 
             services.AddHttpClient();
 
+            services.AddAutoMapper(typeof(Startup));
+
             // Services.
             services.AddTransient<IPhotosService, PhotosService>();
         }
