@@ -1,10 +1,14 @@
-﻿using System.Net.Http;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PhotosApp.Models;
 using Newtonsoft.Json;
 using Photos.Data;
+using Photos.Data.Models;
 
 namespace PhotosApp.Services
 {
@@ -20,7 +24,7 @@ namespace PhotosApp.Services
             _httpClient = clientFactory.CreateClient();
         }
 
-        public async Task<string> FillPhotosAsync()
+        public async Task FillPhotosAsync()
         {
             await AuthorizeClientAsync();
 
@@ -28,11 +32,29 @@ namespace PhotosApp.Services
             AgileengineImagesResponse imagesResponse = null;
             while (imagesResponse == null || imagesResponse.HasMore)
             {
-                imagesResponse = await GetPicturesPage(currentPage);
+                imagesResponse = await GetImagePage(currentPage);
+
+                var notExistsImageIds = await GetNotExistsImageIds(imagesResponse);
+
+                foreach (var imageId in notExistsImageIds)
+                {
+                    var imageResponse = await GetImage(imageId);
+                    var image = new Image
+                    {
+                        Id = imageResponse.Id,
+                        Author = imageResponse.Author,
+                        Camera = imageResponse.Camera,
+                        FullPicture = imageResponse.FullPicture,
+                        CroppedPicture = imageResponse.CroppedPicture,
+                        Tags = imageResponse.Tags
+                    };
+                    _dbContext.Images.Add(image);
+                }
+
+                await _dbContext.SaveChangesAsync();
+
                 currentPage++;
             }
-
-            return null;
         }
 
         private async Task AuthorizeClientAsync()
@@ -50,11 +72,30 @@ namespace PhotosApp.Services
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", body.Token);
         }
 
-        private async Task<AgileengineImagesResponse> GetPicturesPage(int page)
+        private async Task<AgileengineImagesResponse> GetImagePage(int page)
         {
             var responseMessage = await _httpClient.GetAsync($"{ApiUrl}/images?page={page}");
             responseMessage.EnsureSuccessStatusCode();
             return await DeserializeResponseMessage<AgileengineImagesResponse>(responseMessage);
+        }
+
+        private async Task<AgileengineImageResponse> GetImage(string id)
+        {
+            var responseMessage = await _httpClient.GetAsync($"{ApiUrl}/images/{id}");
+            responseMessage.EnsureSuccessStatusCode();
+            return await DeserializeResponseMessage<AgileengineImageResponse>(responseMessage);
+        }
+
+        private async Task<IEnumerable<string>> GetNotExistsImageIds(AgileengineImagesResponse response)
+        {
+            var pictureIds = response.Pictures.Select(p => p.Id);
+
+            var containsIds = await _dbContext.Images
+                .Where(i => pictureIds.Contains(i.Id))
+                .Select(i => i.Id)
+                .ToListAsync();
+
+            return pictureIds.Where(id => !containsIds.Contains(id));
         }
 
         private async Task<T> DeserializeResponseMessage<T>(HttpResponseMessage message)

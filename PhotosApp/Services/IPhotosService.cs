@@ -4,6 +4,6 @@ namespace PhotosApp.Services
 {
     public interface IPhotosService
     {
-        public Task<string> FillPhotosAsync();
+        public Task FillPhotosAsync();
     }
 }

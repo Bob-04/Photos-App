@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace PhotosApp.Models
 {
@@ -13,6 +14,7 @@ namespace PhotosApp.Models
     internal class Picture
     {
         public string Id { get; set; }
-        public string cropped_picture { get; set; }
+        [JsonProperty("cropped_picture")]
+        public string CroppedPicture { get; set; }
     }
 }
