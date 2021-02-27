@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using PhotosApp.Models;
 using Newtonsoft.Json;
 using Photos.Data;
@@ -16,12 +17,15 @@ namespace PhotosApp.Services
     {
         private readonly ApplicationContext _dbContext;
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
         private const string ApiUrl = "http://interview.agileengine.com";
 
-        public PhotosService(ApplicationContext dbContext, IHttpClientFactory clientFactory)
+        public PhotosService(ApplicationContext dbContext, IHttpClientFactory clientFactory,
+            IConfiguration configuration)
         {
             _dbContext = dbContext;
             _httpClient = clientFactory.CreateClient();
+            _configuration = configuration;
         }
 
         public async Task FillPhotosAsync()
@@ -59,9 +63,13 @@ namespace PhotosApp.Services
 
         private async Task AuthorizeClientAsync()
         {
+            var authParams = new AgileengineAuthParams
+            {
+                ApiKey = _configuration["Agileengine:ApiKey"]
+            };
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}/auth")
             {
-                Content = new StringContent("{\"apiKey\":\"23567b218376f79d9415\"}", Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(authParams), Encoding.UTF8, "application/json")
             };
 
             var responseMessage = await _httpClient.SendAsync(requestMessage);
