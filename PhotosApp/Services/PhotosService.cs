@@ -4,16 +4,19 @@ using System.Text;
 using System.Threading.Tasks;
 using PhotosApp.Models;
 using Newtonsoft.Json;
+using Photos.Data;
 
 namespace PhotosApp.Services
 {
     public class PhotosService : IPhotosService
     {
+        private readonly ApplicationContext _dbContext;
         private readonly HttpClient _httpClient;
         private const string ApiUrl = "http://interview.agileengine.com";
 
-        public PhotosService(IHttpClientFactory clientFactory)
+        public PhotosService(ApplicationContext dbContext, IHttpClientFactory clientFactory)
         {
+            _dbContext = dbContext;
             _httpClient = clientFactory.CreateClient();
         }
 
@@ -26,6 +29,7 @@ namespace PhotosApp.Services
             while (imagesResponse == null || imagesResponse.HasMore)
             {
                 imagesResponse = await GetPicturesPage(currentPage);
+                currentPage++;
             }
 
             return null;

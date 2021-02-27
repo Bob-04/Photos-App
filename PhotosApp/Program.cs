@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using PhotosApp.Extensions;
 
 namespace PhotosApp
 {
@@ -7,7 +8,7 @@ namespace PhotosApp
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().FillDatabase().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
