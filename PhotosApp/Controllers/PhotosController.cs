@@ -16,6 +16,7 @@ namespace PhotosApp.Controllers
         [HttpGet("/search/{searchTerm}")]
         public IActionResult Get(string searchTerm)
         {
+
             return null;
         }
     }
